@@ -9,7 +9,7 @@
 
 页面布局结构如下：
 
-![NetEase-Welcome](https://raw.githubusercontent.com/yaming116/Android_Notes/post/2016/static/NetEase-Welcome.png)
+![NetEase-Welcome](https://raw.githubusercontent.com/yaming116/Android_Notes/master/post/2016/static/NetEase-Welcome.png)
 
 # 实现这个需要做的事情
 
