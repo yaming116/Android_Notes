@@ -9,7 +9,7 @@
 
 页面布局结构如下：
 
-![](){NetEase-Welcome}{https://raw.githubusercontent.com/yaming116/Android_Notes/post/2016/static/NetEase-Welcome.png}
+![NetEase-Welcome](https://raw.githubusercontent.com/yaming116/Android_Notes/post/2016/static/NetEase-Welcome.png)
 
 # 实现这个需要做的事情
 
@@ -21,5 +21,5 @@
 
 # 可以参考实现的资料
 
-![ForegroundLinearLayout](https://gist.github.com/chrisbanes/9091754)
-![DownloadProgressBar](https://github.com/panwrona/DownloadProgressBar)
+[ForegroundLinearLayout](https://gist.github.com/chrisbanes/9091754)
+[DownloadProgressBar](https://github.com/panwrona/DownloadProgressBar)
