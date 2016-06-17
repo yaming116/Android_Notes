@@ -1,4 +1,4 @@
-此处记录网易新闻的广告业的实现思路
+此处记录网易新闻的广告欢迎页的实现思路
 =======
 
 最近看到越来越多的app内置的欢迎广告，就想着如何实现它，最后发现是挺简单的，但是自己又有点懒惰了，先记录下来。
@@ -22,4 +22,5 @@
 # 可以参考实现的资料
 
 [ForegroundLinearLayout](https://gist.github.com/chrisbanes/9091754)
+
 [DownloadProgressBar](https://github.com/panwrona/DownloadProgressBar)
