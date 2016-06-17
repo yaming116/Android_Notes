@@ -17,3 +17,9 @@
 * ImageView点击的时候增加一层遮罩
 * 右上角添加一个倒计时的跳过
 * 底部是一个应用信息的展示
+
+
+# 可以参考实现的资料
+
+![ForegroundLinearLayout](https://gist.github.com/chrisbanes/9091754)
+![DownloadProgressBar](https://github.com/panwrona/DownloadProgressBar)
