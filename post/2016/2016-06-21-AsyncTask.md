@@ -181,7 +181,7 @@ LinkedBlockingQueue<Runnable>(128)，这个各个版本有差异的
 下面是各个系统下面 *AsyncTask* 的线程池参数和执行的差异
 
 |系统版本|SERIAL_EXECUTOR/THREAD_POOL_EXECUTOR|线程池参数|等待队列长度|
-|-:|-:|-:|-:|
+|-|:-|:-|:-|
 |2.2|THREAD_POOL_EXECUTOR|5-128-10|10|
 |2.3|THREAD_POOL_EXECUTOR|5-128-1|10|
 |3.2|THREAD_POOL_EXECUTOR|5-128-1|10|
