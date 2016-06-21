@@ -1,32 +1,32 @@
-AsyncTask Դ��ѧϰ
+AsyncTask 源码学习
 ====
 
-AsyncTask ��ϵͳ�ṩһ������ִ���첽�����һ�������࣬Ҳ������һֱ�Ӵ���ʹ�ñȽ϶��һ����
-ֻ�������˽��˲��ܺúõ�ʹ��������������������������ǿ�������������ġ�
+AsyncTask 是系统提供一种用来执行异步任务的一个工具类，也是我们一直接触和使用比较多的一个。
+只有我们了解了才能好好的使用它，遇到问题才能马上明白是可能是哪里引起的。
 
 
-��������������֪ʶ��
+首先有两个基础知识：
 
-* [�̳߳�](http://www.jianshu.com/p/bb1d232aa4df)
+* [线程池](http://www.jianshu.com/p/bb1d232aa4df)
 * [Future](http://www.cnblogs.com/dolphin0520/p/3949310.html)
 
 
-# ��һ��  AsyncTask��������첽�߳������߳�ͨ��
+# 第一点  AsyncTask如何做到异步线程与主线程通信
 
 
-����汾��api-20
+代码版本：api-20
 
-�鿴Դ�뷢�֣�ʵ�����������Ǿ� *Thread + Handler*,�ǲ���˲��о����Ҳ����һ�������صĶ����ˡ�
+查看源码发现，实际上他里面是就 *Thread + Handler*,是不是瞬间感觉这个也不是一个很神秘的东西了。
 
 ```java
-    //�ص����߳�
+    //回调主线程
     private Result postResult(Result result) {
         Message message = sHandler.obtainMessage(MESSAGE_POST_RESULT,
                 new AsyncTaskResult<Result>(this, result));
         message.sendToTarget();
         return result;
     }
-    //ִ�����������̵߳ķ�����һ��update��һ��Result
+    //执行了两个主线程的方法：一个update和一个Result
     private static class InternalHandler extends Handler {
         @SuppressWarnings({"unchecked", "RawUseOfParameterizedType"})
         @Override
@@ -57,12 +57,12 @@ AsyncTask ��ϵͳ�ṩһ������ִ���첽�����һ�������࣬Ҳ������һֱ�Ӵ���ʹ�ñȽ�
 ```
 
 
-# �ڶ���  AsyncTask���߳�����ε��ȵ�
+# 第二点  AsyncTask的线程是如何调度的
 
-�ⲿ���� *AsyncTask* �ڲ��̳߳ش����ķ�ʽ,һ�������������̳߳�
+这部分是 *AsyncTask* 内部线程池创建的方式,一共创建了两个线程池
 
-* SERIAL_EXECUTOR һ���̵߳��̳߳�
-* SERIAL_EXECUTOR �μ��̳߳ز���
+* SERIAL_EXECUTOR 一个线程的线程池
+* SERIAL_EXECUTOR 参见线程池参数
 
 ```java
     private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
@@ -81,19 +81,19 @@ AsyncTask ��ϵͳ�ṩһ������ִ���첽�����һ�������࣬Ҳ������һֱ�Ӵ���ʹ�ñȽ�
     private static final BlockingQueue<Runnable> sPoolWorkQueue =
             new LinkedBlockingQueue<Runnable>(128);
 
-    //�̳߳�
+    //线程池
     public static final Executor THREAD_POOL_EXECUTOR
             = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
                     TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory);
 
-    //ִ�е��̳߳�
+    //执行的线程池
     public static final Executor SERIAL_EXECUTOR = new SerialExecutor();
 
     private static final int MESSAGE_POST_RESULT = 0x1;
     private static final int MESSAGE_POST_PROGRESS = 0x2;
 
     private static final InternalHandler sHandler = new InternalHandler();
-    //Ĭ��ִ�е��̳߳�
+    //默认执行的线程池
     private static volatile Executor sDefaultExecutor = SERIAL_EXECUTOR;
     
     private static class SerialExecutor implements Executor {
@@ -123,10 +123,10 @@ AsyncTask ��ϵͳ�ṩһ������ִ���첽�����һ�������࣬Ҳ������һֱ�Ӵ���ʹ�ñȽ�
     }
 ```
 
-�����Ķ�һ��Դ��ᷢ����*AsyncTask*���������ʱ��ᴴ����������ֱ���:*mWorker*��*mFuture*,�����ǰ���ᵽ��
-Future��������ݣ������׵���Ҫ�Ķ�һ����ƪ���ͣ�����˵�ĺ������
+我们阅读一下源码会发现在*AsyncTask*创建对象的时候会创建两个对象分别是:*mWorker*和*mFuture*,这就是前面提到的
+Future里面的内容，不明白的需要阅读一下那篇博客，里面说的很清楚。
 
-Ȼ�������ڿ�һ���ύ*Task*�ط��Ĵ��룺
+然后我们在看一下提交*Task*地方的代码：
 
 ```java
     public final AsyncTask<Params, Progress, Result> execute(Params... params) {
@@ -159,29 +159,29 @@ Future��������ݣ������׵���Ҫ�Ķ�һ����ƪ���ͣ�����˵�ĺ������
     }
 ```
 
-��ʱ�����ǻᷢ��*AsyncTask*�������ύ������ȫ����������һ����ִ���ˣ������׿��Կ�һ��*SerialExecutor*��ʵ�ַ�
-����
+这时候我们会发现*AsyncTask*把我们提交的任务全部都穿起来一个个执行了，不明白可以看一下*SerialExecutor*的实现方
+法。
 
-ÿ���ύ�����񣬻������������
+每次提交的任务，会有下面情况：
 
-* ��ִ�еľͰ��������������һ����ջ����,�ȴ�ǰ������ִ������ִ�к����
-* û������ִ�У�ֱ��ִ�е�ǰ������
+* 有执行的就把这个任务添加在一个堆栈里面,等待前面任务执行完再执行后面的
+* 没有任务执行，直接执行当前的任务
 
-��������ʹ��*AsyncTask*��ִ��һЩ�����ʱ����Ҫ�ر�С���ˣ���Ȼ�и�����ִ��ʱ��ܳ����������û�취ִ���ˡ�
-�����������Щ����˳��ִ�п��Ե���һ���������*executeOnExecutor*,����ָ��һ���̳߳�ִ�С�
+所有正常使用*AsyncTask*来执行一些任务的时候需要特别小心了，不然有个任务执行时间很长后面的任务都没办法执行了。
+如果不想让这些人物顺序执行可以调用一下这个方法*executeOnExecutor*,可以指定一个线程池执行。
 
-ʣ�µľ���һЩ�����ķ����ˣ�����ȡ�������½��ȵ�
+剩下的就是一些辅助的方法了，例如取消、更新进度等
 
-ע��
+注：
 
-* �̳߳��и��ȴ������������Ƶģ������������������û����쳣������������������ǰ�������ֵ�ǣ�
-LinkedBlockingQueue<Runnable>(128)����������汾�в����
-* AsyncTask ��Ҫ�����߳��д���������󣬲�Ȼ*Handler*����ϢҲ���㴴�����Ǹ��߳�
+* 线程池有个等待队列数量限制的，如果大于这个数量调用会有异常产生，软件崩溃，当前队列最大值是：
+LinkedBlockingQueue<Runnable>(128)，这个各个版本有差异的
+* AsyncTask 需要在主线程中创建这个对象，不然*Handler*的消息也在你创建的那个线程
 
-�����Ǹ���ϵͳ���� *AsyncTask* ���̳߳ز�����ִ�еĲ���
+下面是各个系统下面 *AsyncTask* 的线程池参数和执行的差异
 
-|ϵͳ�汾|SERIAL_EXECUTOR/THREAD_POOL_EXECUTOR|�̳߳ز���|�ȴ����г���|
-|-|:-|:-|:-|
+|系统版本|SERIAL_EXECUTOR/THREAD_POOL_EXECUTOR|线程池参数|等待队列长度|
+|--:|:--:|:--:|:--|
 |2.2|THREAD_POOL_EXECUTOR|5-128-10|10|
 |2.3|THREAD_POOL_EXECUTOR|5-128-1|10|
 |3.2|THREAD_POOL_EXECUTOR|5-128-1|10|
