@@ -1,0 +1,60 @@
+AsyncTask
+====
+
+AsyncTask 是系统提供一种用来执行异步任务的一个工具类，也是我们一直接触和使用比较多的一个。
+只有我们了解了才能好好的使用它，遇到问题才能马上明白是可能是哪里引起的。
+
+
+首先有两个基础知识：
+
+* [线程池](http://www.jianshu.com/p/bb1d232aa4df)
+* [Future](http://www.cnblogs.com/dolphin0520/p/3949310.html)
+
+
+# 第一点  AsyncTask如何做到异步线程与主线程通信
+
+
+查看源码发现，实际上他里面是就 *Thread + Handler*,是不是瞬间感觉这个也不是一个很神秘的东西了。
+
+```java
+    //回调主线程
+    private Result postResult(Result result) {
+        Message message = sHandler.obtainMessage(MESSAGE_POST_RESULT,
+                new AsyncTaskResult<Result>(this, result));
+        message.sendToTarget();
+        return result;
+    }
+    //执行了两个主线程的方法：一个update和一个Result
+    private static class InternalHandler extends Handler {
+        @SuppressWarnings({"unchecked", "RawUseOfParameterizedType"})
+        @Override
+        public void handleMessage(Message msg) {
+            AsyncTaskResult result = (AsyncTaskResult) msg.obj;
+            switch (msg.what) {
+                case MESSAGE_POST_RESULT:
+                    // There is only one result
+                    result.mTask.finish(result.mData[0]);
+                    break;
+                case MESSAGE_POST_PROGRESS:
+                    result.mTask.onProgressUpdate(result.mData);
+                    break;
+            }
+        }
+    }
+        
+    @SuppressWarnings({"RawUseOfParameterizedType"})
+    private static class AsyncTaskResult<Data> {
+        final AsyncTask mTask;
+        final Data[] mData;
+
+        AsyncTaskResult(AsyncTask task, Data... data) {
+            mTask = task;
+            mData = data;
+        }
+    }
+```
+
+
+
+
+
