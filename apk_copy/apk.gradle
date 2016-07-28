@@ -1,0 +1,126 @@
+def storeDir = System.getenv("STORE_ROOT") //配置文件存储路径
+def os = System.getProperty("os.name")     // 系统类型
+def isJenkins = "true".equals(System.getenv("IS_JENKINS")) //是否是打包机
+def projectRootName = project.rootProject.name
+
+
+if (isJenkins && storeDir == null){
+    throw new NullPointerException('storeDir is null, you need add it in system env ' +
+            'with key: STORE_ROOT')
+}
+
+project.ext{
+    projectName = projectRootName
+    apkName = projectName + ".apk"
+    apkRootDir = null
+    outputPath = null
+}
+
+/**
+ * 默认打包完把apk存储的目录
+ * win ：d:/
+ * mac ：/Download
+ * linux ： /opt
+ */
+
+if (project.ext.apkRootDir == null){
+    if (os == null || os.indexOf('windows')){
+        project.ext.apkRootDir = 'd:/'
+    }else if (os.indexOf('linux') > 0){
+        project.ext.apkRootDir = '/opt'
+    }else if (os.indexOf('windows')){
+        project.ext.apkRootDir = '/Download'
+    }
+}
+
+
+def configPath = storeDir + project.ext.projectName + "/apk.properties"
+println "config path: " + configPath
+
+File propFile = file(isJenkins ?  configPath : 'apk.properties');
+if (propFile.exists()) {
+    def Properties props = new Properties()
+    props.load(new FileInputStream(propFile))
+    if (props.containsKey('STORE_FILE') && props.containsKey('STORE_PASSWORD') &&
+            props.containsKey('KEY_ALIAS') && props.containsKey('KEY_PASSWORD')) {
+
+        android.signingConfigs.release.storeFile = file(props['STORE_FILE'])
+        android.signingConfigs.release.storePassword = props['STORE_PASSWORD']
+        android.signingConfigs.release.keyAlias = props['KEY_ALIAS']
+        android.signingConfigs.release.keyPassword = props['KEY_PASSWORD']
+
+        android.buildTypes.release.minifyEnabled = Boolean.parseBoolean(props['MINIFY_ENABLED', 'false'])
+
+        project.ext.apkName = props['APK_NAME']
+        project.ext.apkRootDir = props['APK_DIR']
+        if (hasProperty('PROJECT_NAME')){
+            project.ext.projectName = PROJECT_NAME
+        }
+
+        println "apkName: " + project.ext.apkName
+        println "apk store dir: " + project.ext.apkRootDir
+        println "projectName: " + project.ext.projectName
+    } else {
+        throw new IllegalArgumentException('apk.properties')
+    }
+} else {
+    println "apk.properties not exist"
+    android.buildTypes.release.signingConfig = null
+}
+
+
+def buildDay = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("GMT+8"))
+def buildTime = new Date().format("yyyy-MM-dd HH.mm.ss", TimeZone.getTimeZone("GMT+8"))
+
+
+def publish = project.tasks.create("publishRelease")
+android.applicationVariants.all { variant ->
+    if (variant.buildType.name == 'release') {
+        variant.outputs.each { output ->
+            def taskOnly = project.tasks.create("publishOnly${variant.name}Apk", Copy)
+            def taskDay = project.tasks.create("publishDay${variant.name}Apk", Copy)
+            def taskTimes = project.tasks.create("publishTimes${variant.name}Apk", Copy)
+
+            //构建最新的，固定位置，方便拷贝
+            def onlyApkDir = project.ext.apkRootDir + "/" ;
+            def onlyApk = onlyApkDir + project.ext.projectName + ".apk";
+            //每日保存最新的一个
+            def dayApkDir = project.ext.apkRootDir + "/" + buildDay + "/";
+            def dayApk = dayApkDir + project.ext.projectName + ".apk";
+            //保留每次打包的apk
+            def timesApkDir = project.ext.apkRootDir + "/" + buildDay + "/" + project.ext.projectName + "/";
+
+            def srcApk = output.outputFile.getAbsolutePath();
+            def srcName = output.outputFile.getName()
+            //clean
+            File dk = new File(dayApk)
+            if (dk.exists()){
+                dk.delete()
+            }
+
+            File ok = new File(onlyApk)
+            if (ok.exists()){
+                ok.delete()
+            }
+
+            taskOnly.from(srcApk)
+            taskOnly.into(onlyApkDir)
+            taskOnly.rename(srcName, project.ext.apkName )
+
+            taskDay.from(srcApk)
+            taskDay.into(dayApkDir)
+            taskDay.rename(srcName, project.ext.apkName )
+
+            taskTimes.from(srcApk)
+            taskTimes.into(timesApkDir)
+            taskTimes.rename(srcName, buildTime + ".apk")
+
+            taskOnly.dependsOn variant.assemble
+            taskDay.dependsOn variant.assemble
+            taskTimes.dependsOn variant.assemble
+            taskOnly.dependsOn taskDay
+            taskOnly.dependsOn taskTimes
+            publish.dependsOn taskOnly
+        }
+    }
+}
