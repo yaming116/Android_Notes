@@ -124,3 +124,4 @@ android.applicationVariants.all { variant ->
         }
     }
 }
+
