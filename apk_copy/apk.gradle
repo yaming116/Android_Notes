@@ -61,11 +61,15 @@ if (propFile.exists()) {
         println "apk store dir: " + project.ext.apkRootDir
         println "projectName: " + project.ext.projectName
     } else {
-        throw new IllegalArgumentException('apk.properties')
+        throw new IllegalArgumentException('invalid args in apk.properties')
     }
 } else {
     println "apk.properties not exist"
-    android.buildTypes.release.signingConfig = null
+    if (isJenkins){
+        throw new FileNotFoundException("File not found at: " + configPath)
+    }else{
+        android.buildTypes.release.signingConfig = null
+    }
 }
 
 
