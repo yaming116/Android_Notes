@@ -128,3 +128,4 @@ android.applicationVariants.all { variant ->
         }
     }
 }
+
