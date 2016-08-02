@@ -1,0 +1,15 @@
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+def versionNum(){
+    def cmd = 'svn info'
+    def result = cmd.execute().text;
+    Pattern p = Pattern.compile("Revision: (\\d+)")
+    Matcher matcher = p.matcher(result)
+    if (matcher.find()){
+        return matcher.group(1).trim().toInteger()
+    }else {
+        return 1
+    }
+}
+println(versionNum())
