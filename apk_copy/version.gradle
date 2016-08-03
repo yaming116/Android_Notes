@@ -1,7 +1,5 @@
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-
 def versionNum(){
+    versionNumUpdate()
     def cmd = 'svn info'
     def result = cmd.execute().text;
     Pattern p = Pattern.compile("Revision: (\\d+)")
@@ -12,4 +10,20 @@ def versionNum(){
         return 1
     }
 }
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+def versionNumUpdate(){
+    def cmd = 'svn update'
+    def result = cmd.execute().text;
+    Pattern p = Pattern.compile("revision (\\d+)")
+    Matcher matcher = p.matcher(result)
+    if (matcher.find()){
+        return matcher.group(1).trim().toInteger()
+    }else {
+        return 1
+    }
+}
 println(versionNum())
+println(versionNumUpdate())
