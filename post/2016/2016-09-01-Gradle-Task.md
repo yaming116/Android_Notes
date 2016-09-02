@@ -46,3 +46,14 @@ Gradle Task 顺序
    A.finalizeBy C 
   ```
  
+ * 检查当命令环境
+ 
+ ```gradle
+ 
+gradle.taskGraph.whenReady {taskGraph ->
+    println taskGraph.getAllTasks()
+    if (!taskGraph.hasTask(assembleRelease)) {
+        throw new IllegalArgumentException("can't found android.buildTypes.release")
+    }
+}
+ ```
