@@ -14,6 +14,8 @@ project.ext{
     apkName = projectName + ".apk"
     apkRootDir = null
     outputPath = null
+    sourceApk = null
+    sourceApkName = null
 }
 
 /**
@@ -77,55 +79,54 @@ def buildDay = new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("GMT+8"))
 def buildTime = new Date().format("yyyy-MM-dd HH.mm.ss", TimeZone.getTimeZone("GMT+8"))
 
 
-def publish = project.tasks.create("publishRelease")
 android.applicationVariants.all { variant ->
     if (variant.buildType.name == 'release') {
         variant.outputs.each { output ->
-            def taskOnly = project.tasks.create("publishOnly${variant.name}Apk", Copy)
-            def taskDay = project.tasks.create("publishDay${variant.name}Apk", Copy)
-            def taskTimes = project.tasks.create("publishTimes${variant.name}Apk", Copy)
-
-            //构建最新的，固定位置，方便拷贝
-            def onlyApkDir = project.ext.apkRootDir + "/" ;
-            def onlyApk = onlyApkDir + project.ext.projectName + ".apk";
-            //每日保存最新的一个
-            def dayApkDir = project.ext.apkRootDir + "/" + buildDay + "/";
-            def dayApk = dayApkDir + project.ext.projectName + ".apk";
-            //保留每次打包的apk
-            def timesApkDir = project.ext.apkRootDir + "/" + buildDay + "/" + project.ext.projectName + "/";
-
-            def srcApk = output.outputFile.getAbsolutePath();
-            def srcName = output.outputFile.getName()
-            //clean
-            File dk = new File(dayApk)
-            if (dk.exists()){
-                dk.delete()
-            }
-
-            File ok = new File(onlyApk)
-            if (ok.exists()){
-                ok.delete()
-            }
-
-            taskOnly.from(srcApk)
-            taskOnly.into(onlyApkDir)
-            taskOnly.rename(srcName, project.ext.apkName )
-
-            taskDay.from(srcApk)
-            taskDay.into(dayApkDir)
-            taskDay.rename(srcName, project.ext.apkName )
-
-            taskTimes.from(srcApk)
-            taskTimes.into(timesApkDir)
-            taskTimes.rename(srcName, buildTime + ".apk")
-
-            taskOnly.dependsOn variant.assemble
-            taskDay.dependsOn variant.assemble
-            taskTimes.dependsOn variant.assemble
-            taskOnly.dependsOn taskDay
-            taskOnly.dependsOn taskTimes
-            publish.dependsOn taskOnly
+            project.ext.sourceApk = output.outputFile.getAbsolutePath();
+            project.ext.sourceApkName = output.outputFile.getName()
         }
+    }
+}
+
+task publishRelease(dependsOn: 'assembleRelease') << {
+    //构建最新的，固定位置，方便拷贝
+    def onlyApkDir = project.ext.apkRootDir + "/" ;
+    def onlyApk = onlyApkDir + project.ext.projectName + ".apk";
+    //每日保存最新的一个
+    def dayApkDir = project.ext.apkRootDir + "/" + buildDay + "/";
+    def dayApk = dayApkDir + project.ext.projectName + ".apk";
+    //保留每次打包的apk
+    def timesApkDir = project.ext.apkRootDir + "/" + buildDay + "/" + project.ext.projectName + "/";
+
+    def srcApk = project.ext.sourceApk
+    def srcName = project.ext.sourceApkName
+    //clean
+    File dk = new File(dayApk)
+    if (dk.exists()){
+        dk.delete()
+    }
+
+    File ok = new File(onlyApk)
+    if (ok.exists()){
+        ok.delete()
+    }
+
+    copy{
+        from srcApk
+        into onlyApkDir + project.ext.apkName
+        rename srcName, project.ext.apkName
+    }
+
+    copy{
+        from srcApk
+        into dayApkDir
+        rename srcName, project.ext.apkName
+    }
+
+    copy{
+        from srcApk
+        into timesApkDir
+        rename srcName, buildTime + ".apk"
     }
 }
 
