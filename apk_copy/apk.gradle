@@ -88,45 +88,47 @@ android.applicationVariants.all { variant ->
     }
 }
 
-task publishRelease(dependsOn: 'assembleRelease') << {
-    //构建最新的，固定位置，方便拷贝
-    def onlyApkDir = project.ext.apkRootDir + "/" ;
-    def onlyApk = onlyApkDir + project.ext.projectName + ".apk";
-    //每日保存最新的一个
-    def dayApkDir = project.ext.apkRootDir + "/" + buildDay + "/";
-    def dayApk = dayApkDir + project.ext.projectName + ".apk";
-    //保留每次打包的apk
-    def timesApkDir = project.ext.apkRootDir + "/" + buildDay + "/" + project.ext.projectName + "/";
+task publishRelease(dependsOn: 'assembleRelease') {
+    doLast{
+        //构建最新的，固定位置，方便拷贝
+        def onlyApkDir = project.ext.apkRootDir + "/" ;
+        def onlyApk = onlyApkDir + project.ext.projectName + ".apk";
+        //每日保存最新的一个
+        def dayApkDir = project.ext.apkRootDir + "/" + buildDay + "/";
+        def dayApk = dayApkDir + project.ext.projectName + ".apk";
+        //保留每次打包的apk
+        def timesApkDir = project.ext.apkRootDir + "/" + buildDay + "/" + project.ext.projectName + "/";
 
-    def srcApk = project.ext.sourceApk
-    def srcName = project.ext.sourceApkName
-    //clean
-    File dk = new File(dayApk)
-    if (dk.exists()){
-        dk.delete()
-    }
+        def srcApk = project.ext.sourceApk
+        def srcName = project.ext.sourceApkName
+        //clean
+        def File dk = new File(dayApk)
+        if (dk.exists()){
+            dk.delete()
+        }
 
-    File ok = new File(onlyApk)
-    if (ok.exists()){
-        ok.delete()
-    }
+        def File ok = new File(onlyApk)
+        if (ok.exists()){
+            ok.delete()
+        }
 
-    copy{
-        from srcApk
-        into onlyApkDir + project.ext.apkName
-        rename srcName, project.ext.apkName
-    }
+        copy{
+            from srcApk
+            into onlyApkDir + project.ext.apkName
+            rename srcName, project.ext.apkName
+        }
 
-    copy{
-        from srcApk
-        into dayApkDir
-        rename srcName, project.ext.apkName
-    }
+        copy{
+            from srcApk
+            into dayApkDir
+            rename srcName, project.ext.apkName
+        }
 
-    copy{
-        from srcApk
-        into timesApkDir
-        rename srcName, buildTime + ".apk"
+        copy{
+            from srcApk
+            into timesApkDir
+            rename srcName, buildTime + ".apk"
+        }
     }
 }
 
