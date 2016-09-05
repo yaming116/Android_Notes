@@ -51,7 +51,7 @@ if (propFile.exists()) {
         android.signingConfigs.release.keyAlias = props['KEY_ALIAS']
         android.signingConfigs.release.keyPassword = props['KEY_PASSWORD']
 
-        android.buildTypes.release.minifyEnabled = Boolean.parseBoolean(props['MINIFY_ENABLED', 'false'])
+        android.buildTypes.release.minifyEnabled = 'true'.equals(props['MINIFY_ENABLED'])
 
         project.ext.apkName = props['APK_NAME']
         project.ext.apkRootDir = props['APK_DIR']
