@@ -1,0 +1,102 @@
+def isJenkins = "true".equals(System.getenv("IS_JENKINS"))
+
+/*
+ * Copyright 2013 Chris Banes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+def NEXUS_USERNAME = System.getenv('nexus_name')
+def NEXUS_PASSWORD = System.getenv('nexus_pass')
+
+
+def isReleaseBuild() {
+    return VERSION_NAME.contains("SNAPSHOT") == false
+}
+
+def getReleaseRepositoryUrl() {
+    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
+            : "http://192.168.0.114:8081/nexus/content/repositories/releases/"
+}
+
+def getSnapshotRepositoryUrl() {
+    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
+            : "http://192.168.0.114:8081/nexus/content/repositories/snapshots/"
+}
+
+def isAppendJar(){
+    return hasProperty("APPEND_JAR") ? Boolean.parseBoolean(APPEND_JAR) : false
+}
+
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                pom.groupId = GROUP
+                pom.artifactId = POM_ARTIFACT_ID
+                pom.version = VERSION_NAME
+                repository(url: getReleaseRepositoryUrl()) {
+                    authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+                }
+                snapshotRepository(url: getSnapshotRepositoryUrl()) {
+                    authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+                }
+                pom.project {
+                    name POM_NAME
+                    packaging POM_PACKAGING
+                    description POM_DESCRIPTION
+                    url POM_URL
+                    scm {
+                        url ''
+                        connection ''
+                        developerConnection ''
+                    }
+                    licenses {
+                        license {
+                            name ''
+                            url ''
+                            distribution ''
+                        }
+                    }
+                    developers {
+                        developer {
+                            id POM_DEVELOPER_ID
+                            name POM_DEVELOPER_NAME
+                        }
+                    }
+                }
+            }
+        }
+    }
+    signing {
+        required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+    }
+
+    artifacts {
+
+    }
+
+    android.libraryVariants.all  { variant ->
+        def name = variant.buildType.name
+        if (!name.equals("debug") && isAppendJar()) {
+            def task = project.tasks.create  "jar${name.capitalize()}", Jar
+            task.dependsOn variant.javaCompile
+            task.from  variant.javaCompile.destinationDir
+            artifacts.add('archives', task);
+        }
+    }
+}
