@@ -1,6 +1,3 @@
-IS_JENKINS = "true".equals(System.getenv("IS_JENKINS"))
-NEXUS_USERNAME = System.getenv('nexus_name')
-NEXUS_PASSWORD = System.getenv('nexus_pass')
 /*
  * Copyright 2013 Chris Banes
  *
@@ -18,7 +15,6 @@ NEXUS_PASSWORD = System.getenv('nexus_pass')
  */
 apply plugin: 'maven'
 apply plugin: 'signing'
-
 
 
 def isReleaseBuild() {
@@ -39,11 +35,15 @@ def isAppendJar(){
     return hasProperty("APPEND_JAR") ? Boolean.parseBoolean(APPEND_JAR) : false
 }
 
+def isJenkins(){
+    return "true".equals(System.getenv("IS_JENKINS"))
+}
+
 def getRepositoryUsername() {
-    return IS_JENKINS ? NEXUS_USERNAME : loadRepository().getProperty("maven.user", "")
+    return isJenkins() ? System.getenv('nexus_name') : loadRepository().getProperty("maven.user", "")
 }
 def getRepositoryPassword() {
-    return IS_JENKINS ? NEXUS_PASSWORD : loadRepository().getProperty("maven.apikey", "")
+    return isJenkins() ? System.getenv('nexus_pass') : loadRepository().getProperty("maven.apikey", "")
 }
 
 def loadRepository(){
