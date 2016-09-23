@@ -40,10 +40,10 @@ def isAppendJar(){
 }
 
 def getRepositoryUsername() {
-    return ext.isJenkins ? NEXUS_USERNAME : loadRepository().getProperty("maven.user", "")
+    return IS_JENKINS ? NEXUS_USERNAME : loadRepository().getProperty("maven.user", "")
 }
 def getRepositoryPassword() {
-    return ext.isJenkins ? NEXUS_PASSWORD : loadRepository().getProperty("maven.apikey", "")
+    return IS_JENKINS ? NEXUS_PASSWORD : loadRepository().getProperty("maven.apikey", "")
 }
 
 def loadRepository(){
