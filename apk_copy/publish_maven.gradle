@@ -35,6 +35,10 @@ def isAppendJar(){
     return hasProperty("APPEND_JAR") ? Boolean.parseBoolean(APPEND_JAR) : false
 }
 
+def isAndroid(){
+    return hasProperty("IS_ANDROID") ? Boolean.parseBoolean(APPEND_JAR) : false
+}
+
 def isJenkins(){
     return "true".equals(System.getenv("IS_JENKINS"))
 }
@@ -109,13 +113,16 @@ afterEvaluate { project ->
 
     }
 
-    android.libraryVariants.all  { variant ->
-        def name = variant.buildType.name
-        if (!name.equals("debug") && isAppendJar()) {
-            def task = project.tasks.create  "jar${name.capitalize()}", Jar
-            task.dependsOn variant.javaCompile
-            task.from  variant.javaCompile.destinationDir
-            artifacts.add('archives', task);
+    if (isAndroid()){
+        android.libraryVariants.all  { variant ->
+            def name = variant.buildType.name
+            if (!name.equals("debug") && isAppendJar()) {
+                def task = project.tasks.create  "jar${name.capitalize()}", Jar
+                task.dependsOn variant.javaCompile
+                task.from  variant.javaCompile.destinationDir
+                artifacts.add('archives', task);
+            }
         }
     }
+
 }
