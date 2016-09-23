@@ -1,4 +1,4 @@
-isJenkins = "true".equals(System.getenv("IS_JENKINS"))
+IS_JENKINS = "true".equals(System.getenv("IS_JENKINS"))
 NEXUS_USERNAME = System.getenv('nexus_name')
 NEXUS_PASSWORD = System.getenv('nexus_pass')
 /*
@@ -40,10 +40,10 @@ def isAppendJar(){
 }
 
 def getRepositoryUsername() {
-    return isJenkins ? NEXUS_USERNAME : loadRepository().getProperty("maven.user", "")
+    return ext.isJenkins ? NEXUS_USERNAME : loadRepository().getProperty("maven.user", "")
 }
 def getRepositoryPassword() {
-    return isJenkins ? NEXUS_PASSWORD : loadRepository().getProperty("maven.apikey", "")
+    return ext.isJenkins ? NEXUS_PASSWORD : loadRepository().getProperty("maven.apikey", "")
 }
 
 def loadRepository(){
