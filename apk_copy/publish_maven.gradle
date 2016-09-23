@@ -1,5 +1,6 @@
 def isJenkins = "true".equals(System.getenv("IS_JENKINS"))
-
+def NEXUS_USERNAME = System.getenv('nexus_name')
+def NEXUS_PASSWORD = System.getenv('nexus_pass')
 /*
  * Copyright 2013 Chris Banes
  *
@@ -18,8 +19,6 @@ def isJenkins = "true".equals(System.getenv("IS_JENKINS"))
 apply plugin: 'maven'
 apply plugin: 'signing'
 
-def NEXUS_USERNAME = System.getenv('nexus_name')
-def NEXUS_PASSWORD = System.getenv('nexus_pass')
 
 
 def isReleaseBuild() {
@@ -40,19 +39,39 @@ def isAppendJar(){
     return hasProperty("APPEND_JAR") ? Boolean.parseBoolean(APPEND_JAR) : false
 }
 
+def getRepositoryUsername() {
+    return isJenkins ? NEXUS_USERNAME : loadRepository().getProperty("maven.user", "")
+}
+def getRepositoryPassword() {
+    return isJenkins ? NEXUS_PASSWORD : loadRepository().getProperty("maven.apikey", "")
+}
+
+def loadRepository(){
+    /**
+     * Properties for BinTray upload
+     */
+    Properties properties = new Properties()
+    File bintrayPropertiesFile = project.file('maven.properties');
+    if (bintrayPropertiesFile.exists()) {
+        properties.load(bintrayPropertiesFile.newDataInputStream())
+    }
+    return properties
+}
+
 afterEvaluate { project ->
     uploadArchives {
         repositories {
             mavenDeployer {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
                 pom.groupId = GROUP
                 pom.artifactId = POM_ARTIFACT_ID
                 pom.version = VERSION_NAME
                 repository(url: getReleaseRepositoryUrl()) {
-                    authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+                    authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
                 }
                 snapshotRepository(url: getSnapshotRepositoryUrl()) {
-                    authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+                    authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
                 }
                 pom.project {
                     name POM_NAME
