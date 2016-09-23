@@ -1,6 +1,6 @@
-def isJenkins = "true".equals(System.getenv("IS_JENKINS"))
-def NEXUS_USERNAME = System.getenv('nexus_name')
-def NEXUS_PASSWORD = System.getenv('nexus_pass')
+isJenkins = "true".equals(System.getenv("IS_JENKINS"))
+NEXUS_USERNAME = System.getenv('nexus_name')
+NEXUS_PASSWORD = System.getenv('nexus_pass')
 /*
  * Copyright 2013 Chris Banes
  *
