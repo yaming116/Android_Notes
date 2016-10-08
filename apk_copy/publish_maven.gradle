@@ -16,6 +16,9 @@
 apply plugin: 'maven'
 apply plugin: 'signing'
 
+version = VERSION_NAME
+group = GROUP
+
 
 def isReleaseBuild() {
     return VERSION_NAME.contains("SNAPSHOT") == false
@@ -113,7 +116,7 @@ afterEvaluate { project ->
 
     }
 
-    if (isAndroid()){
+    if (isAndroid() && project.getPlugins().hasPlugin('com.android.library')){
         android.libraryVariants.all  { variant ->
             def name = variant.buildType.name
             if (!name.equals("debug") && isAppendJar()) {
