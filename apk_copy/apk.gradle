@@ -1,12 +1,13 @@
 def storeDir = System.getenv("STORE_ROOT") //配置文件存储路径
 def os = System.getProperty("os.name")     // 系统类型
+def apkDir = System.getProperty("APK_DIR")     // 打包出来apk存储的地方
 def isJenkins = "true".equals(System.getenv("IS_JENKINS")) //是否是打包机
 def projectRootName = project.rootProject.name
 
 
-if (isJenkins && storeDir == null){
+if (isJenkins && (storeDir == null || apkDir == null)){
     throw new NullPointerException('storeDir is null, you need add it in system env ' +
-            'with key: STORE_ROOT')
+            'with key: STORE_ROOT and APK_DIR')
 }
 
 project.ext{
@@ -16,6 +17,10 @@ project.ext{
     outputPath = null
     sourceApk = null
     sourceApkName = null
+}
+
+if (isJenkins){
+    project.ext.apkRootDir = apkDir
 }
 
 /**
@@ -52,7 +57,6 @@ if (propFile.exists()) {
         android.signingConfigs.release.keyPassword = props['KEY_PASSWORD']
 
         project.ext.apkName = props['APK_NAME']
-        project.ext.apkRootDir = props['APK_DIR']
         if (hasProperty('PROJECT_NAME')){
             project.ext.projectName = PROJECT_NAME
         }
