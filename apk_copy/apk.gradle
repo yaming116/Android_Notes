@@ -4,7 +4,7 @@ def apkDir = System.getenv("APK_DIR")     // 打包出来apk存储的地方
 def isJenkins = "true".equals(System.getenv("IS_JENKINS")) //是否是打包机
 def projectRootName = project.rootProject.name
 
-println "version: 2"
+println "version: 3"
 
 if (isJenkins && (storeDir == null || apkDir == null)){
     if (storeDir == null){
@@ -102,13 +102,13 @@ android.applicationVariants.all { variant ->
 task publishRelease(dependsOn: 'assembleRelease') {
     doLast{
         //构建最新的，固定位置，方便拷贝
-        def onlyApkDir = project.ext.apkRootDir + "/" ;
+        def onlyApkDir = project.ext.apkRootDir  ;
         def onlyApk = onlyApkDir + project.ext.projectName + ".apk";
         //每日保存最新的一个
-        def dayApkDir = project.ext.apkRootDir + "/" + buildDay + "/";
+        def dayApkDir = project.ext.apkRootDir + buildDay + "/";
         def dayApk = dayApkDir + project.ext.projectName + ".apk";
         //保留每次打包的apk
-        def timesApkDir = project.ext.apkRootDir + "/" + buildDay + "/" + project.ext.projectName + "/";
+        def timesApkDir = project.ext.apkRootDir + buildDay + "/" + project.ext.projectName + "/";
 
         def srcApk = project.ext.sourceApk
         def srcName = project.ext.sourceApkName
@@ -124,6 +124,8 @@ task publishRelease(dependsOn: 'assembleRelease') {
         if (ok.exists()){
             ok.delete()
         }
+
+        println "onlyApk status: " + ok.exists()
 
         copy{
             from srcApk
