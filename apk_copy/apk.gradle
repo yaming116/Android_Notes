@@ -6,8 +6,14 @@ def projectRootName = project.rootProject.name
 
 
 if (isJenkins && (storeDir == null || apkDir == null)){
-    throw new NullPointerException('storeDir is null, you need add it in system env ' +
-            'with key: STORE_ROOT and APK_DIR')
+    if (storeDir == null){
+        throw new NullPointerException('storeDir is null, you need add it in system env ' +
+                'with key: STORE_ROOT')
+    }
+    if (apkDir == null){
+        throw new NullPointerException('apkDir is null, you need add it in system env ' +
+                'with key: APK_DIR')
+    }
 }
 
 project.ext{
