@@ -4,7 +4,7 @@ def apkDir = System.getenv("APK_DIR")     // 打包出来apk存储的地方
 def isJenkins = "true".equals(System.getenv("IS_JENKINS")) //是否是打包机
 def projectRootName = project.rootProject.name
 
-println "version: 4"
+println "version: 5"
 
 if (isJenkins && (storeDir == null || apkDir == null)){
     if (storeDir == null){
@@ -28,7 +28,7 @@ project.ext{
 
 if (isJenkins){
     project.ext.apkRootDir = apkDir
-    storeDir = storeDir  + project.ext.projectName
+    storeDir = storeDir  + project.ext.projectName + "/"
 }else {
     storeDir = ''
 }
