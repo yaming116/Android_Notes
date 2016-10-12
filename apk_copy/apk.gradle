@@ -1,6 +1,6 @@
 def storeDir = System.getenv("STORE_ROOT") //配置文件存储路径
 def os = System.getProperty("os.name")     // 系统类型
-def apkDir = System.getProperty("APK_DIR")     // 打包出来apk存储的地方
+def apkDir = System.getenv("APK_DIR")     // 打包出来apk存储的地方
 def isJenkins = "true".equals(System.getenv("IS_JENKINS")) //是否是打包机
 def projectRootName = project.rootProject.name
 
