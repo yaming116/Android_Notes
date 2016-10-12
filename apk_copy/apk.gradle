@@ -124,7 +124,7 @@ task publishRelease(dependsOn: 'assembleRelease') {
 
         copy{
             from srcApk
-            into onlyApkDir + project.ext.apkName
+            into onlyApk
             rename srcName, project.ext.apkName
         }
 
