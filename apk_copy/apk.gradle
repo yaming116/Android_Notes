@@ -4,7 +4,7 @@ def apkDir = System.getenv("APK_DIR")     // 打包出来apk存储的地方
 def isJenkins = "true".equals(System.getenv("IS_JENKINS")) //是否是打包机
 def projectRootName = project.rootProject.name
 
-println "version: 3"
+println "version: 4"
 
 if (isJenkins && (storeDir == null || apkDir == null)){
     if (storeDir == null){
@@ -27,7 +27,8 @@ project.ext{
 }
 
 if (isJenkins){
-    project.ext.apkRootDir = apkDir + projectName + "/"
+    project.ext.apkRootDir = apkDir
+    storeDir = storeDir  + project.ext.projectName
 }else {
     storeDir = ''
 }
@@ -50,7 +51,7 @@ if (project.ext.apkRootDir == null){
 }
 
 
-def configPath = storeDir + project.ext.projectName + "/apk.properties"
+def configPath = storeDir + "/apk.properties"
 println "config path: " + configPath
 
 File propFile = file(isJenkins ?  configPath : 'apk.properties');
