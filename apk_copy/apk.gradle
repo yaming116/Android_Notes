@@ -109,6 +109,8 @@ task publishRelease(dependsOn: 'assembleRelease') {
 
         def srcApk = project.ext.sourceApk
         def srcName = project.ext.sourceApkName
+        println "onlyApk: " + onlyApk
+        println "dayApk: " +  dayApk
         //clean
         def File dk = new File(dayApk)
         if (dk.exists()){
