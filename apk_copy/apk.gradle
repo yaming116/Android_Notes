@@ -27,6 +27,8 @@ project.ext{
 
 if (isJenkins){
     project.ext.apkRootDir = apkDir
+}else {
+    storeDir = ''
 }
 
 /**
