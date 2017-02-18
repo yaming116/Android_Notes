@@ -1,0 +1,85 @@
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+
+def siteUrl = SITE_URL    // 项目的主页
+def gitUrl = GIT_URL
+  // Git仓库的url
+group  = GROUP
+version  = VERSION_NAME
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging POM_PACKAGING
+                // Add your description here
+                name POM_DESCRIPTION
+                url siteUrl
+                artifactId = POM_ARTIFACT_ID
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id POM_ARTIFACT_ID        //填写的一些基本信息
+                        name POM_DEVELOPER_NAME
+                        email POM_DEVELOPER_EMAIL
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+bintray {
+    user = System.getenv('bintray_user')
+    key = System.getenv("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = POM_ARTIFACT_ID    //发布到JCenter上的项目名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        labels = LABLES
+        licenses = ["Apache-2.0"]
+        publicDownloadNumbers = true
+        publish = true
+
+    }
+}
+
+def isAddJar(){
+    return hasProperty("IS_ADD_JAR") ? Boolean.parseBoolean(IS_ADD_JAR) : false
+}
+
+if (isAddJar() && project.getPlugins().hasPlugin('com.android.library')){
+    android.libraryVariants.all  { variant ->
+        def name = variant.buildType.name
+        if (!name.equals("debug") && isAppendJar()) {
+            def task = project.tasks.create  "jar${name.capitalize()}", Jar
+            task.dependsOn variant.javaCompile
+            task.from  variant.javaCompile.destinationDir
+            artifacts.add('archives', task);
+        }
+    }
+}
